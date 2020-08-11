@@ -115,7 +115,7 @@ class Graph:
                 if neighbor not in visited:
                     stack.push(neighbor)
 
-    def dfs_recursive(self, starting_vertex, destination_vertex, visited=None, path=[]): # Solved by messing around w/ it. Don't FULLY understand why it works, but it works.
+    def dfs_recursive(self, starting_vertex, destination_vertex, visited=None, path=[]): # Walked through it in the debugger and I get it, but it's dizzyingly complicated.
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
