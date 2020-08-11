@@ -67,7 +67,12 @@ class Graph:
 
         This should be done using recursion.
         """
-        pass
+        print(starting_vertex)
+        self.vertices[starting_vertex].add("Visited")
+        for neighbor in self.get_neighbors(starting_vertex):
+            if (type(neighbor) is int) and ("Visited" not in self.get_neighbors(neighbor)):
+                self.dft_recursive(neighbor)
+
 
     def bfs(self, starting_vertex, destination_vertex):
         """
@@ -75,18 +80,21 @@ class Graph:
         starting_vertex to destination_vertex in
         breath-first order.
         """
-        visited = []
+        visited = set()
         queue = Queue()
-        queue.enqueue(starting_vertex)
+        queue.enqueue([starting_vertex])
         while queue.size() > 0:
-            current = queue.dequeue()
-            visited.append(current)
-            if current == destination_vertex:
-                return visited
-            else:
-                for neighbor in self.get_neighbors(current):
-                    if neighbor not in visited:
-                        queue.enqueue(neighbor)
+            current_path = queue.dequeue()
+            last_vertex = current_path[-1]
+            if last_vertex not in visited:
+                if last_vertex == destination_vertex:
+                    return current_path
+                else:
+                    visited.add(last_vertex)                   
+            for neighbor in self.get_neighbors(last_vertex):
+                path_copy = list(current_path)
+                path_copy.append(neighbor)
+                queue.enqueue(path_copy)
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -107,7 +115,7 @@ class Graph:
                 if neighbor not in visited:
                     stack.push(neighbor)
 
-    def dfs_recursive(self, starting_vertex, destination_vertex):
+    def dfs_recursive(self, starting_vertex, destination_vertex, visited=None, path=[]): # Solved by messing around w/ it. Don't FULLY understand why it works, but it works.
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
@@ -115,15 +123,28 @@ class Graph:
 
         This should be done using recursion.
         """
-        visited = []
+        if visited is None:
+            visited = set()
+            path.append(starting_vertex)
+        visited.add(starting_vertex)
+        # current_vertex = path[-1]
         if starting_vertex == destination_vertex:
-            return starting_vertex
+            return path
         else:
             for neighbor in self.get_neighbors(starting_vertex):
                 if neighbor not in visited:
-                    visited.append(self.dfs_recursive(neighbor, destination_vertex))
-        visited.prepend(starting_vertex)
-        return visited
+                    path_copy = list(path)
+                    path_copy.append(neighbor)
+                    if neighbor == destination_vertex:
+                       return path_copy
+                        # return self.dfs_recursive(neighbor, destination_vertex, visited, path_copy)
+                    else:
+                        final_path = self.dfs_recursive(neighbor, destination_vertex, visited, path_copy)
+                        final_vertex = final_path[-1]
+                        if final_vertex == destination_vertex:
+                            return final_path
+        return path
+        
 
 if __name__ == '__main__':
     graph = Graph()  # Instantiate your graph
@@ -190,5 +211,5 @@ if __name__ == '__main__':
         [1, 2, 4, 6]
         [1, 2, 4, 7, 6]
     '''
-    print(graph.dfs(1, 6))
+    # print(graph.dfs(1, 6))
     print(graph.dfs_recursive(1, 6))
