@@ -296,3 +296,11 @@ if __name__ == '__main__':
     print(sg.friendships)
     connections = sg.get_all_social_paths(1)
     print(connections)
+
+"""
+1. To create 100 users with an average of 10 friends each, I would need to call add_friendship() 500 times because the number of friendships that would be created would be
+100 * 10, which is 1000. And because each add_friendship creates 2 friendships (one in each direction), the number of calls would be quotient of 1000 / 2.
+
+2. The average degree of seperation between a user and an extended friend is 2.
+Logic found in prob.py.
+"""
