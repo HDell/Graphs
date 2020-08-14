@@ -1,4 +1,5 @@
 import random
+import time
 
 """
 Helper Classes
@@ -264,6 +265,21 @@ class SocialGraph:
                 self.add_friendship(i, friend_id)
             friendships_count += num_friends * 2
 
+    def get_all_social_paths_given(self, user_id):
+        queue = Queue()
+        visited = {}
+        queue.enqueue([user_id])
+        while queue.size() > 0:
+            path = queue.dequeue()
+            last_vertex = path[-1]
+            if last_vertex not in visited:
+                visited[last_vertex] = path
+                for friend in self.friendships[last_vertex]:
+                    path_copy = path.copy()
+                    path_copy.append(friend)
+                    queue.enqueue(path_copy)
+        return visited
+
     def get_all_social_paths(self, user_id):
         """
         Takes a user's user_id as an argument
@@ -284,23 +300,40 @@ class SocialGraph:
         self.get_neighbors_recursively(user_id, user_id, visited, graph)
         return visited
 
+
     def get_neighbors_recursively(self, original_vertex, vertex, visited, graph=Graph()):
         for neighbor in graph.get_neighbors(vertex):
             if neighbor not in visited.keys():
                 visited[neighbor] = graph.bfs(original_vertex, neighbor)
                 self.get_neighbors_recursively(original_vertex, neighbor, visited, graph)
 
+# if __name__ == '__main__':
+#     sg = SocialGraph()
+#     sg.populate_graph(10, 2)
+#     print(sg.friendships)
+#     connections = sg.get_all_social_paths(1)
+#     print(connections)
+
 if __name__ == '__main__':
     sg = SocialGraph()
-    sg.populate_graph(10, 2)
-    print(sg.friendships)
+    sg.populate_graph(500, 5)
+    # print(sg.friendships)
+    start_time = time.time()
     connections = sg.get_all_social_paths(1)
-    print(connections)
+    end_time = time.time()
+    print("My Function's Runtime:", (end_time - start_time))
+    start_time = time.time()
+    connections = sg.get_all_social_paths_given(1)
+    end_time = time.time()
+    print("Given Function's Runtime:", (end_time - start_time))
+    # print(connections)
 
 """
 1. To create 100 users with an average of 10 friends each, I would need to call add_friendship() 500 times because the number of friendships that would be created would be
 100 * 10, which is 1000. And because each add_friendship creates 2 friendships (one in each direction), the number of calls would be quotient of 1000 / 2.
 
-2. The average degree of seperation between a user and an extended friend is 2.
+2. 
+15.8% of other users will be in a particular user's extended social network over 50% of the time.
+The average degree of seperation between a user and an extended friend is 2.
 Logic found in prob.py.
 """
