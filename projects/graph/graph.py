@@ -48,6 +48,17 @@ class Graph:
         Print each vertex in depth-first order
         beginning from starting_vertex.
         """
+        # visited = set()
+        # stack = Stack()
+        # stack.push(starting_vertex)
+        # while stack.size() > 0:
+        #     current = stack.pop()
+        #     if current not in visited:
+        #         print(current)
+        #         visited.add(current)
+        #     for neighbor in self.get_neighbors(current):
+        #         if neighbor not in visited:
+        #             stack.push(neighbor)
         visited = set()
         stack = Stack()
         stack.push(starting_vertex)
@@ -55,7 +66,7 @@ class Graph:
             current = stack.pop()
             if current not in visited:
                 print(current)
-                visited.add(current)
+            visited.add(current)
             for neighbor in self.get_neighbors(current):
                 if neighbor not in visited:
                     stack.push(neighbor)
@@ -188,7 +199,7 @@ if __name__ == '__main__':
         1, 2, 4, 3, 7, 6, 5
         1, 2, 4, 3, 7, 5, 6
     '''
-    #graph.bft(1)
+    # graph.bft(1)
 
     '''
     Valid DFT paths:
@@ -197,7 +208,7 @@ if __name__ == '__main__':
         1, 2, 4, 7, 6, 3, 5
         1, 2, 4, 6, 3, 5, 7
     '''
-    # graph.dft(1)
+    graph.dft(1)
     # graph.dft_recursive(1)
 
     '''
@@ -212,4 +223,4 @@ if __name__ == '__main__':
         [1, 2, 4, 7, 6]
     '''
     # print(graph.dfs(1, 6))
-    print(graph.dfs_recursive(1, 6))
+    # print(graph.dfs_recursive(1, 6))

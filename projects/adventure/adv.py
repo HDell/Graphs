@@ -4,6 +4,9 @@ from world import World
 
 import random
 from ast import literal_eval
+
+import os
+dirpath = os.path.dirname(os.path.abspath(__file__))
 """
 Graph, Stack, and Queue Classes
 """
@@ -34,7 +37,7 @@ class Stack():
     def size(self):
         return len(self.stack)
 
-class RoomGraph:
+class RoomGraph():
 
     """Represent a graph as a dictionary of vertices mapping labels to edges."""
     def __init__(self):
@@ -79,32 +82,109 @@ class RoomGraph:
         """
         return self.rooms[room_id] # e.g. {'n': ?, 's': ?}
 
-    def dft(self, starting_room_id):
+    def dft(self, starting_room_id, graph):
         """
         Traverse through all rooms from a given a starting room, depth first.
         """
-        visited = set()
         # picks a random unexplored direction
-        exit_direction_list = self.get_neighbors(starting_room_id)
-        stack = Stack()
-        next_direction = ''
+        visited = set()
+        current_room = starting_room_id
+        start = Stack()
+        reverse = Stack()
+        path = []
+        all_visited = True
+        exit_direction_list = list(self.get_neighbors(current_room).keys())
         for direction in exit_direction_list:
-            if exit_direction_list[direction] == '?':
-                next_direction = direction
-                break
-        stack.push([next_direction])
-        while stack.size() > 0:
-            current_path = stack.pop()
-            last_direction = current_path[-1]
-            player.travel(last_direction)
-            last_room = player.current_room.id
-            if last_room not in visited:
-                visited.add(last_room)
-            for direction in player.current_room.get_exits():
-                path_copy = list(current_path)
-                path_copy.append(direction)
-                stack.push(path_copy)
-        return current_path
+            if self.get_neighbors(current_room)[direction] == '?':
+                all_visited = False
+                start.push(direction)
+                if direction == 'n':
+                    reverse.push('s')
+                elif direction == 's':
+                    reverse.push('n')
+                elif direction == 'w':
+                    reverse.push('e')
+                else: # direction == 'e'
+                    reverse.push('w')
+                visited.add(current_room)
+
+        while start.size() > 0:
+            print(len(path), ":", current_room)
+            if all_visited:
+                next_direction = reverse.pop() #n
+                path.append(next_direction) #n
+                if len(path) == 561:
+                    print("debug")
+                try_again = True
+                while try_again:
+                    try:
+                        next_room = graph[current_room][1][next_direction] # next_room = room number (id)
+                        try_again = False
+                    except:
+                        next_direction = reverse.pop()
+                        if next_direction is not None:
+                            try_again = True
+                current_room = next_room
+                exit_direction_list = list(self.get_neighbors(current_room).keys()) #['n', 's']
+                for direction in exit_direction_list:
+                    if self.get_neighbors(current_room)[direction] == '?':
+                        if current_room in visited:
+                            all_visited = False
+                            break
+                        else:
+                            all_visited = False
+                            start.push(direction)
+                            if direction == 'n':
+                                reverse.push('s')
+                            elif direction == 's':
+                                reverse.push('n')
+                            elif direction == 'w':
+                                reverse.push('e')
+                            else: # direction == 'e'
+                                reverse.push('w')
+            else:
+                next_direction = start.pop() #s
+                if next_direction == 'n':
+                    reverse_direction = 's'
+                elif next_direction == 's':
+                    reverse_direction = 'n' #this -> n
+                elif next_direction == 'w':
+                    reverse_direction = 'e'
+                else: # next_direction == 'e'
+                    reverse_direction = 'w'
+                next_room = graph[current_room][1][next_direction] # next_room = room number (id)
+                if self.rooms[current_room][next_direction] == '?' or self.rooms[next_room][reverse_direction] == '?':
+                    try:
+                        graph[next_room][1][reverse_direction]
+                        path.append(next_direction)
+                        self.rooms[current_room][next_direction] = next_room 
+                        self.rooms[next_room][reverse_direction] = current_room
+                        current_room = next_room
+                    except:
+                        self.rooms[current_room][next_direction] = next_room
+                        reverse.pop() 
+                else:
+                    continue
+                if current_room in visited and len(self.get_neighbors(current_room).keys())==4:
+                    while reverse.size() > start.size():
+                        reverse.pop()
+                    continue
+                visited.add(current_room)
+                all_visited = True
+                exit_direction_list = list(self.get_neighbors(current_room).keys()) #[n]
+                for direction in exit_direction_list: #n
+                    if self.get_neighbors(current_room)[direction] == '?': 
+                        all_visited = False
+                        start.push(direction)
+                        if direction == 'n':
+                            reverse.push('s')
+                        elif direction == 's':
+                            reverse.push('n')
+                        elif direction == 'w':
+                            reverse.push('e')
+                        else: # direction == 'e'
+                            reverse.push('w')
+        return path
 
         # travels
         # logs that direction
@@ -118,11 +198,11 @@ world = World()
 
 
 # You may uncomment the smaller graphs for development and testing purposes.
-map_file = "maps/test_line.txt"
-# map_file = "maps/test_cross.txt"
-# map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt"
+# map_file = dirpath + "/maps/test_line.txt"
+# map_file = dirpath + "/maps/test_cross.txt"
+# map_file = dirpath + "/maps/test_loop.txt"
+# map_file = dirpath + "/maps/test_loop_fork.txt"
+map_file = dirpath + "/maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -137,8 +217,13 @@ player = Player(world.starting_room)
 # traversal_path = ['n', 'n']
 traversal_path = []
 graph = RoomGraph()
+for room in room_graph:
+    graph.add_room(room, list(room_graph[room][1].keys()))
 
-
+# print("Class:", graph.rooms)
+# print("Neighbors:", graph.get_neighbors(0))
+# print("DFT:", graph.dft(player.current_room.id, room_graph))
+traversal_path = graph.dft(player.current_room.id, room_graph)
 
 # TRAVERSAL TEST
 visited_rooms = set()
@@ -149,8 +234,14 @@ for move in traversal_path:
     player.travel(move)
     visited_rooms.add(player.current_room)
 
-print("Room:::", player.current_room.id)
-print("Exit:::", player.current_room.get_exits())
+# print("Room:::", player.current_room.id)
+# print("Exit:::", player.current_room.get_exits())
+# print("Graph:::", room_graph) 
+#room_graph[player.current_room.id][1]['n'] in visited
+#room_graph[player.current_room.id][1]['s'] in visited
+#room_graph[player.current_room.id][1]['e'] in visited
+#room_graph[player.current_room.id][1]['w'] in visited
+print("Length:::", len(room_graph))
 if len(visited_rooms) == len(room_graph):
     print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
 else:
